@@ -4,6 +4,28 @@ import random, re, difflib, math
 import streamlit as st
 from question_bank import QUESTIONS, CATEGORIES
 
+def _tokenize_options(s: str):
+    # split on "and", commas, slashes, semicolons
+    parts = re.split(r"\s*(?:\band\b|,|/|;)\s*", s.strip(), flags=re.I)
+    return [p for p in parts if p]
+
+def answers_match(user: str, correct: str) -> bool:
+    u = user.strip().lower()
+    c = correct.strip().lower()
+
+    # exact quick pass
+    if u == c:
+        return True
+
+    # order-insensitive for multi-part answers like "Nepal and China"
+    u_parts = _tokenize_options(u)
+    c_parts = _tokenize_options(c)
+    if len(c_parts) > 1:
+        return sorted(u_parts) == sorted(c_parts)
+
+    # fuzzy fallback for minor typos (tune 0.8–0.9)
+    return difflib.SequenceMatcher(None, u, c).ratio() >= 0.85
+
 # ---------- Settings ----------
 PASS_THRESHOLD = 0.70  # 70%
 MIX_LABEL = "All Categories (Mix)"
@@ -46,15 +68,44 @@ def is_correct(user: str, correct: str) -> bool:
     Flexible match:
     - Case/whitespace/punctuation-insensitive
     - Accept any among 'or' / comma / slash / semicolon separated answers
+    - Order-insensitive match for multi-part answers (e.g., 'Nepal and China')
     - Fuzzy match for mild typos (len-adaptive threshold)
     """
-    u = normalize(user)
-    c = normalize(correct)
+    u = normalize(user or "")
+    c = normalize(correct or "")
     if not u:
         return False
     if alias_match(u, correct):
         return True
 
+    # --- NEW: order-insensitive multi-part check ---
+    u_parts = _tokenize_options(u)
+    c_parts = _tokenize_options(c)
+    if len(c_parts) > 1:
+        if len(u_parts) == len(c_parts):
+            # exact token set match
+            if sorted(u_parts) == sorted(c_parts):
+                return True
+            # fuzzy per-token (all tokens must find a close match)
+            def close(a, b):
+                return difflib.SequenceMatcher(None, a, b).ratio() >= 0.88
+            used = [False] * len(c_parts)
+            all_matched = True
+            for a in u_parts:
+                hit = False
+                for j, b in enumerate(c_parts):
+                    if not used[j] and (a == b or close(a, b)):
+                        used[j] = True
+                        hit = True
+                        break
+                if not hit:
+                    all_matched = False
+                    break
+            if all_matched:
+                return True
+        # if user didn’t provide same number of parts, fall through to single-part logic
+
+    # --- Single-part logic: accept any one of the listed options ---
     parts = re.split(r"\bor\b|,|/|;", c)
     parts = [p.strip() for p in parts if p.strip()] or [c]
 
@@ -78,6 +129,7 @@ def pool_for_category(category: str):
 st.set_page_config(page_title="Trivia (Categories)", page_icon="🧠", layout="centered")
 st.title("🧠 Trivia — Categories")
 st.caption("Build: 2025-09-20")
+
 
 # Session state
 ss = st.session_state
@@ -128,9 +180,9 @@ else:
         st.subheader(f"Question {i + 1} of {total} — {ss.category}")
         st.write(qtext)
 
-        # Optional: support images later (add 'image' key to entries)
-        # if qobj.get("image"):
-        #     st.image(qobj["image"], use_column_width=True)
+        # ✅ Image display goes HERE (optional per-question)
+        if qobj.get("image"):
+            st.image(qobj["image"], use_column_width=True)
 
         user_ans = st.text_input("Your answer:", key=f"ans_{i}")
 
