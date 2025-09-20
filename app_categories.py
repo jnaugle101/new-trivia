@@ -33,9 +33,108 @@ MIX_LABEL = "All Categories (Mix)"
 # Optional: paste your big ALIASES dict here if you want (can be empty)
 ALIASES = {
     # example aliases – expand as you like
-    "united states": {"usa", "us", "u.s.a", "u s a", "u.s."},
     "uk": {"united kingdom", "great britain", "britain"},
+    "netherlands": {"holland", "the netherlands"},
+    "robert downey jr": {"rdj", "robert downey junior"},
+    "pokemon go": {"pokémon go", "pokemon-go"},
+    "stranger things": {"strangerthings"},
+    "united states": {"usa", "u s a", "u.s.", "us", "u.s.a", "united states of america"},
+    "new york city": {"nyc", "new york", "ny"},
+    "007": {"james bond", "bond"},
+    "bible": {"the bible", "holy bible"},
+    "Alabama": {"AL"},
+    "Alaska": {"AK"},
+    "Arizona": {"AZ"},
+    "Arkansas": {"AR"},
+    "California": {"CA"},
+    "Colorado": {"CO"},
+    "Connecticut": {"CT"},
+    "Delaware": {"DE"},
+    "Florida": {"FL"},
+    "Georgia": {"GA"},
+    "Hawaii": {"HI"},
+    "Idaho": {"ID"},
+    "Illinois": {"IL"},
+    "Indiana": {"IN"},
+    "Iowa": {"IA"},
+    "Kansas": {"KS"},
+    "Kentucky": {"KY"},
+    "Louisiana": {"LA"},
+    "Maine": {"ME"},
+    "Maryland": {"MD"},
+    "Massachusetts": {"MA"},
+    "Michigan": {"MI"},
+    "Minnesota": {"MN"},
+    "Mississippi": {"MS"},
+    "Missouri": {"MO"},
+    "Montana": {"MT"},
+    "Nebraska": {"NE"},
+    "Nevada": {"NV"},
+    "New Hampshire": {"NH"},
+    "New Jersey": {"NJ"},
+    "New Mexico": {"NM"},
+    "New York": {"NY"},
+    "North Carolina": {"NC"},
+    "North Dakota": {"ND"},
+    "Ohio": {"OH"},
+    "Oklahoma": {"OK"},
+    "Oregon": {"OR"},
+    "Pennsylvania": {"PA"},
+    "Rhode Island": {"RI"},
+    "South Carolina": {"SC"},
+    "South Dakota": {"SD"},
+    "Tennessee": {"TN"},
+    "Texas": {"TX"},
+    "Utah": {"UT"},
+    "Vermont": {"VT"},
+    "Virginia": {"VA"},
+    "Washington": {"WA"},
+    "West Virginia": {"WV"},
+    "Wisconsin": {"WI"},
+    "Wyoming": {"WY"},
+    # DC (normalize() strips punctuation)
+    "Washington, DC": {"DC", "Washington DC", "District of Columbia"},
+    # Countries / blocs
+    "United Kingdom": {"UK", "U.K.", "Great Britain", "Britain"},
+    "United Arab Emirates": {"UAE"},
+    "Soviet Union": {"USSR", "Union of Soviet Socialist Republics"},
+    "European Union": {"EU"},
+    "United Nations": {"UN"},
+    "Ivory Coast": {"Cote d'Ivoire", "Côte d'Ivoire"},
+    "Netherlands": {"Holland", "The Netherlands"},
+    "Myanmar": {"Burma"},
+    "Czechia": {"Czech Republic"},
+    "Eswatini": {"Swaziland"},
+    "Cape Verde": {"Cabo Verde"},
+    "East Timor": {"Timor-Leste", "Timor Leste"},
+    "South Korea": {"ROK", "Republic of Korea"},
+    "North Korea": {"DPRK", "Democratic People's Republic of Korea"},
+
+    # Major cities (common nicknames/abbr.)
+    "Los Angeles": {"LA", "L.A."},
+    "San Francisco": {"SF", "S.F.", "San Fran"},
+    "Philadelphia": {"Philly"},
+    "Las Vegas": {"Vegas"},
+    "New Orleans": {"NOLA"},
+    "Atlanta": {"ATL"},
+    "Saint Louis": {"St Louis", "St. Louis"},
+    "Saint Petersburg": {"St Petersburg", "St. Petersburg"},
+
+    # People / initials
+    "John F. Kennedy": {"JFK"},
+    "Franklin D. Roosevelt": {"FDR"},
+    "Martin Luther King Jr.": {"MLK", "Dr Martin Luther King Jr", "Dr. Martin Luther King Jr"},
+
+    # Entertainment shorthands
+    "Lord of the Rings": {"LOTR"},
+    "Game of Thrones": {"GOT"},
+    "Harry Potter": {"HP"},
+    "Back to the Future": {"BTTF"},
+    "AC/DC": {"ACDC"},
 }
+
+def alias_equiv(u_norm: str, correct_raw: str) -> bool:
+    return alias_match(u_norm, correct_raw)
 
 # ---------- Helpers ----------
 def normalize(s: str) -> str:
@@ -69,48 +168,48 @@ def is_correct(user: str, correct: str) -> bool:
     - Case/whitespace/punctuation-insensitive
     - Accept any among 'or' / comma / slash / semicolon separated answers
     - Order-insensitive match for multi-part answers (e.g., 'Nepal and China')
+    - Alias-aware comparisons (e.g., 'us' ≈ 'united states')
     - Fuzzy match for mild typos (len-adaptive threshold)
     """
     u = normalize(user or "")
     c = normalize(correct or "")
     if not u:
         return False
-    if alias_match(u, correct):
+
+    # whole-answer alias (rare but cheap)
+    if alias_equiv(u, correct):
         return True
 
-    # --- NEW: order-insensitive multi-part check ---
+    # --- order-insensitive multi-part check ---
     u_parts = _tokenize_options(u)
     c_parts = _tokenize_options(c)
     if len(c_parts) > 1:
         if len(u_parts) == len(c_parts):
-            # exact token set match
-            if sorted(u_parts) == sorted(c_parts):
-                return True
-            # fuzzy per-token (all tokens must find a close match)
             def close(a, b):
                 return difflib.SequenceMatcher(None, a, b).ratio() >= 0.88
             used = [False] * len(c_parts)
-            all_matched = True
             for a in u_parts:
-                hit = False
+                matched = False
                 for j, b in enumerate(c_parts):
-                    if not used[j] and (a == b or close(a, b)):
+                    if used[j]:
+                        continue
+                    if a == b or alias_equiv(a, b) or close(a, b):
                         used[j] = True
-                        hit = True
+                        matched = True
                         break
-                if not hit:
-                    all_matched = False
+                if not matched:
                     break
-            if all_matched:
+            else:
+                # loop didn’t break -> every token matched something
                 return True
-        # if user didn’t provide same number of parts, fall through to single-part logic
+        # if counts differ, fall through to single-option logic
 
-    # --- Single-part logic: accept any one of the listed options ---
+    # --- single-part / “any of these options” logic ---
     parts = re.split(r"\bor\b|,|/|;", c)
     parts = [p.strip() for p in parts if p.strip()] or [c]
 
     for p in parts:
-        if u == p:
+        if u == p or alias_equiv(u, p):  # <-- alias check added here
             return True
         if len(p) <= 3:  # very short answers require exact match
             continue
@@ -118,6 +217,7 @@ def is_correct(user: str, correct: str) -> bool:
         thresh = 0.88 if len(p) <= 6 else 0.80
         if ratio >= thresh:
             return True
+
     return False
 
 def pool_for_category(category: str):
