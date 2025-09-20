@@ -145,17 +145,23 @@ if not ss.started:
     ss.category = st.selectbox("Choose a category", cats, index=0)
     pool = pool_for_category(ss.category)
 
+    # ✅ Show how many questions are available in the chosen category
+    st.caption(f"{len(pool)} question(s) available in **{ss.category}**.")
+
     if not pool:
         st.warning("No questions in this category yet.")
         st.stop()
 
-    max_q = min(50, len(pool))
-    min_q = 1 if max_q < 5 else 5
-    num_default = min(10, max_q)
-    num_q = st.slider("How many questions?", min_value=min_q, max_value=max_q, value=num_default, step=1)
+    # ✅ Let users allow repeats; this also changes the slider’s max
+    allow_repeats = st.checkbox("Allow repeats (sample with replacement)", value=False)
 
-    if max_q < 5:
-        st.caption(f"Only **{max_q}** question(s) available in this category.")
+    MAX_BASE = 50
+    max_q = MAX_BASE if allow_repeats else min(MAX_BASE, len(pool))
+    num_default = min(10, max_q)
+    num_q = st.slider(
+        "How many questions?",
+        min_value=5, max_value=max_q, value=num_default, step=1
+    )
 
     with st.expander("📋 Rules & Tips", expanded=True):
         st.markdown(
@@ -166,11 +172,17 @@ if not ss.started:
         )
 
     if st.button("Start"):
-        ss.order = random.sample(pool, k=num_q)
+        # ✅ Use repeats or not based on the checkbox
+        ss.order = (
+            random.choices(pool, k=num_q)  # can exceed unique pool size
+            if allow_repeats
+            else random.sample(pool, k=num_q)  # unique questions only
+        )
         ss.history = []
         ss.idx = 0
         ss.started = True
         st.rerun()
+
 
 # Game flow
 else:
