@@ -150,8 +150,12 @@ if not ss.started:
         st.stop()
 
     max_q = min(50, len(pool))
+    min_q = 1 if max_q < 5 else 5
     num_default = min(10, max_q)
-    num_q = st.slider("How many questions?", min_value=5, max_value=max_q, value=num_default, step=1)
+    num_q = st.slider("How many questions?", min_value=min_q, max_value=max_q, value=num_default, step=1)
+
+    if max_q < 5:
+        st.caption(f"Only **{max_q}** question(s) available in this category.")
 
     with st.expander("📋 Rules & Tips", expanded=True):
         st.markdown(
