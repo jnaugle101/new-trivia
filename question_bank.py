@@ -277,6 +277,114 @@ QUESTIONS = [
     {"q": "At which event did John Cena publicly praise BTS?", "a": "Fan Expo Dallas", "category": "Social Media"},
     {"q": "What is the term for AI-generated videos, images, or voices?", "a": "Deepfakes", "category": "Social Media"},
 
+    # ——— Music ———
+    {"q": "Who won the first season of American Idol in 2002?", "a": "Kelly Clarkson", "category": "Music"},
+    {"q": "What is the name of Beyoncé's alter ego?", "a": "Sasha Fierce", "category": "Music"},
+    {"q": "Who wrote the hit song \"I Will Always Love You,\" famously covered by Whitney Houston?", "a": "Dolly Parton", "category": "Music"},
+    {"q": "What is the name of Adele's second studio album?", "a": "21", "category": "Music"},
+    {"q": "What is the name of Taylor Swift's debut single, released in 2006?", "a": "Tim McGraw", "category": "Music"},
+    {"q": "Which rock band is known for their hit songs \"Stairway to Heaven\" and \"Kashmir\"?", "a": "Led Zeppelin", "category": "Music"},
+    {"q": "What is the name of the rock band fronted by Mick Jagger?", "a": "The Rolling Stones", "category": "Music"},
+    {"q": "Who is the lead singer of the band Coldplay?", "a": "Chris Martin", "category": "Music"},
+    {"q": "What is the name of Lady Gaga's debut album?", "a": "The Fame", "category": "Music"},
+    {"q": "What song won the 2020 Grammy Award for Song of the Year?", "a": "Bad Guy by Billie Eilish", "category": "Music"},
+    {"q": "What is the name of the rapper who released the album \"good kid, m.A.A.d city\" in 2012?", "a": "Kendrick Lamar", "category": "Music"},
+    {"q": "Which legendary musician was known as \"The King of Pop\"?", "a": "Michael Jackson", "category": "Music"},
+
+    # ——— Pop Culture ———
+    {"q": "Which Olympic sprinter famously competed at the 1936 Berlin Olympics, breaking records and defying Nazi ideology?", "a": "Jesse Owens", "category": "Pop Culture"},
+    {"q": "What is the name of the social media app that allows users to create short-form videos set to music?", "a": "TikTok", "category": "Pop Culture"},
+    {"q": "Who interrupted Taylor Swift's acceptance speech at the 2009 MTV Video Music Awards?", "a": "Kanye West", "category": "Pop Culture"},
+    {"q": "Which NFL quarterback has won seven Super Bowl titles?", "a": "Tom Brady", "category": "Pop Culture"},
+    {"q": "Which celebrity couple split in 2020 after a decade-long relationship?", "a": "Megan Fox and Brian Austin Green", "category": "Pop Culture"},
+    {"q": "What is the official name of the meme featuring a woman yelling at a white cat at a dinner table?", "a": "Woman Yelling at a Cat", "category": "Pop Culture"},
+    {"q": "Which rapper and producer created the Yeezy brand with Adidas?", "a": "Kanye West", "category": "Pop Culture"},
+    {"q": "Who was the most-followed person on Instagram in 2023?", "a": "Cristiano Ronaldo", "category": "Pop Culture"},
+    {"q": "Which NBA player scored 81 points in a single game in 2006, second only to Wilt Chamberlain?", "a": "Kobe Bryant", "category": "Pop Culture"},
+    {"q": "Which social media platform was founded by Mark Zuckerberg in 2004?", "a": "Facebook", "category": "Pop Culture"},
+
+    # ——— Movies ———
+    {"q": "“You're gonna need a bigger boat” is an iconic quote from which 1975 movie?", "a": "Jaws", "category": "Movies"},
+    {"q": "Name the movie from its tagline: “The longer you wait, the harder it gets.”", "a": "The 40-Year-Old Virgin", "category": "Movies"},
+    {"q": "Which Coen Brothers film features a character known simply as The Dude?", "a": "The Big Lebowski", "category": "Movies"},
+    {"q": "The Conversation, Apocalypse Now, and The Godfather were all helmed by which director?", "a": "Francis Ford Coppola", "category": "Movies"},
+    {"q": "How many Batman movies did Tim Burton direct?", "a": "2", "category": "Movies"},
+    {"q": "What is the highest-grossing film of all time?", "a": "Avatar", "category": "Movies"},
+    {"q": "Which actor played Iron Man in the Marvel Cinematic Universe?", "a": "Robert Downey Jr.", "category": "Movies"},
+    {"q": "What is the name of the fictional African country in Black Panther?", "a": "Wakanda", "category": "Movies"},
+    {"q": "Which animated film features a cowboy named Woody?", "a": "Toy Story", "category": "Movies"},
+    {"q": "What is the main theme of The Shawshank Redemption?", "a": "Hope and redemption", "category": "Movies"},
+    {"q": "Which actress won her first Golden Globe at age 62 for her role in The Substance?", "a": "Demi Moore", "category": "Movies"},  # ⚠ verify (recent)
+    {"q": "What song was Deadpool dancing to in the opening scene of the 2024 movie Deadpool & Wolverine, which went viral online?", "a": "Bye Bye Bye by NSYNC", "category": "Movies"},  # ⚠ verify (recent)
+    {"q": "Which musical film stars Ariana Grande and Cynthia Erivo as Galinda and Elphaba?", "a": "Wicked", "category": "Movies"},
+    {"q": "Paul Mescal starred in the sequel to which historical epic?", "a": "Gladiator (Gladiator II)", "category": "Movies"},
+    {"q": "Name four of Riley’s new emotions as a teenager in Inside Out 2.", "a": "Anxiety; Envy; Embarrassment; Ennui", "category": "Movies"},
+    {"q": "Which 2025 Oscar-winning animated film featured a black cat as the main character?", "a": "Flow", "category": "Movies"},  # ⚠ verify (recent)
+    {"q": "In the movie Sinners, which traditional 19th-century folk song is performed by Jack O’Connell?", "a": "Rocky Road to Dublin", "category": "Movies"},  # ⚠ verify
+    {"q": "Which film features Ethan Hunt attempting to stop a rogue AI known as “The Entity”?", "a": "Mission: Impossible – The Final Reckoning", "category": "Movies"},  # ⚠ verify/title
+    {"q": "Which ancient Chinese novel is Ne Zha 2 based on?", "a": "Investiture of the Gods (Fengshen Yanyi)", "category": "Movies"},
+    {"q": "Which 2025 film, based on a popular video game, grossed over $947 million worldwide?", "a": "A Minecraft Movie", "category": "Movies"},  # ⚠ verify/box office
+    {"q": "In A Complete Unknown, Timothée Chalamet portrays which influential music legend?", "a": "Bob Dylan", "category": "Movies"},
+    {"q": "Disney’s latest live-action release features which classic fairytale princess?", "a": "Snow White", "category": "Movies"},  # ⚠ timing
+    {"q": "Who takes on the role of Captain America in Brave New World?", "a": "Sam Wilson", "category": "Movies"},
+    {"q": "Which actor plays the rookie driver in Brad Pitt’s F1 (2025)?", "a": "Damson Idris", "category": "Movies"},
+    {"q": "Who directed the animated survival film Flow?", "a": "Gints Zilbalodis", "category": "Movies"},
+    {"q": "Under which secret society does Eve Macarro train as an assassin?", "a": "Ruska Roma", "category": "Movies"},  # ⚠ verify/character
+    {"q": "Who directed Final Destination: Bloodlines?", "a": "Zach Lipovsky and Adam Stein", "category": "Movies"},  # ⚠ verify/project
+    {"q": "What former profession did Levon Cade leave behind in A Working Man?", "a": "Black ops operative (retired commando)", "category": "Movies"},  # ⚠ verify/project
+    {"q": "What is the name of the new kung fu prodigy in Karate Kid: Legends?", "a": "Li Fong", "category": "Movies"},  # ⚠ verify/project
+
+    # ——— Television ———
+    {"q": "In the original Star Trek series, what was the name of the captain of the Enterprise?", "a": "James T. Kirk", "category": "Television"},
+    {"q": "Name the TV show from its theme song’s opening lyrics: “When you came in the air went out, and all those shadows there filled up with doubt.”", "a": "True Blood", "category": "Television"},
+    {"q": "What TV family is composed of Mike, Carol, Greg, Marcia, Peter, Jan, Bobby, and Cindy?", "a": "The Brady Bunch", "category": "Television"},
+    {"q": "Which TV show ends by suddenly cutting to black?", "a": "The Sopranos", "category": "Television"},
+    {"q": "Name the iconic TV comedian known for skits involving a chocolate conveyor belt and stomping grapes.", "a": "Lucille Ball", "category": "Television"},
+    {"q": "What was the name of the coffee shop in Friends?", "a": "Central Perk", "category": "Television"},
+    {"q": "Who is the main character in Breaking Bad?", "a": "Walter White", "category": "Television"},
+    {"q": "What year did Game of Thrones first premiere?", "a": "2011", "category": "Television"},
+    {"q": "Who hosts The Tonight Show as of 2023?", "a": "Jimmy Fallon", "category": "Television"},
+    {"q": "Which TV show features a group of survivors on a deserted island?", "a": "Lost", "category": "Television"},
+    {"q": "Colin Farrell starred in which TV show as Oswald ‘Oz’ Cobb?", "a": "The Penguin", "category": "Television"},
+    {"q": "Which Korean TV show revolves around Seong Gi-hun, also known as Player 456?", "a": "Squid Game", "category": "Television"},
+    {"q": "Which anime by Junji Ito is set in the town of Kurouzu-cho, where a supernatural curse involving spirals wreaks havoc?", "a": "Uzumaki", "category": "Television"},
+    {"q": "Which TV series tells the story of aspiring comedian Donny Dunn and Martha?", "a": "Baby Reindeer", "category": "Television"},
+    {"q": "Which U.S. state is the setting for Stranger Things?", "a": "Indiana", "category": "Television"},
+
+    # ——— Movies ———
+    {"q": "Who won the Best Actor Oscar for his role in The Revenant in 2016?", "a": "Leonardo DiCaprio", "category": "Movies"},
+    {"q": "Name one of the films to have won all five of the 'Big Five' Academy Awards (Best Picture, Best Director, Best Actor, Best Actress, Best Screenplay).", "a": "It Happened One Night; One Flew Over the Cuckoo's Nest; The Silence of the Lambs", "category": "Movies"},
+    {"q": "What is the highest-grossing film of all time (not adjusted for inflation)?", "a": "Avatar", "category": "Movies"},
+    {"q": "What is the name of the fictional newspaper that employs Clark Kent in the Superman franchise?", "a": "The Daily Planet", "category": "Movies"},
+    {"q": "What is the name of the fictional kingdom in Black Panther?", "a": "Wakanda", "category": "Movies"},
+    {"q": "Who directed the movie Jurassic Park?", "a": "Steven Spielberg", "category": "Movies"},
+    {"q": "Which actor played Batman in the 1989 film directed by Tim Burton?", "a": "Michael Keaton", "category": "Movies"},
+    {"q": "Name any actor who has played Hannibal Lecter in a feature film.", "a": "Anthony Hopkins; Brian Cox; Gaspard Ulliel", "category": "Movies"},
+    {"q": "Which actor played the character of Neo in The Matrix trilogy?", "a": "Keanu Reeves", "category": "Movies"},
+    {"q": "What is the name of the high school in the movie Mean Girls?", "a": "North Shore High School", "category": "Movies"},
+    {"q": "What is the name of the evil sorcerer in The Lord of the Rings trilogy?", "a": "Sauron", "category": "Movies"},
+    {"q": "Who directed the 2019 film Parasite, which won the Academy Award for Best Picture?", "a": "Bong Joon-ho", "category": "Movies"},
+    {"q": "What is the name of the character played by Will Smith in the Men in Black franchise?", "a": "Agent J", "category": "Movies"},
+
+    # ——— Television ———
+    {"q": "Which TV show is set in the world of Westeros?", "a": "Game of Thrones", "category": "Television"},
+    {"q": "Who played the character of Stringer Bell in The Wire?", "a": "Idris Elba", "category": "Television"},
+    {"q": "What is the name of the prison where the characters in Orange Is the New Black are incarcerated?", "a": "Litchfield Penitentiary", "category": "Television"},
+    {"q": "In The Crown, who plays Queen Elizabeth II in the first two seasons?", "a": "Claire Foy", "category": "Television"},
+    {"q": "In The Office, what is the name of the company the characters work for?", "a": "Dunder Mifflin", "category": "Television"},
+    {"q": "Who played the character of Carrie Bradshaw in Sex and the City?", "a": "Sarah Jessica Parker", "category": "Television"},
+    {"q": "What is the name of the family that lives in the White House in The West Wing?", "a": "The Bartlet family", "category": "Television"},
+    {"q": "What is the name of the high school attended by the characters in Buffy the Vampire Slayer?", "a": "Sunnydale High School", "category": "Television"},
+    {"q": "In Friends, what is the name of Ross and Monica's mother?", "a": "Judy Geller", "category": "Television"},
+    {"q": "Which TV show is set in the fictional town of Pawnee, Indiana?", "a": "Parks and Recreation", "category": "Television"},
+    {"q": "Who played the character of Don Draper in Mad Men?", "a": "Jon Hamm", "category": "Television"},
+    {"q": "In its early seasons, which city is the primary setting of The Walking Dead?", "a": "Atlanta, Georgia", "category": "Television"},
+    {"q": "Which TV show features a team of con artists who specialize in elaborate heists?", "a": "Leverage", "category": "Television"},
+
+    # ——— Music ———
+    {"q": "Who is the best-selling solo artist of all time?", "a": "Elvis Presley", "category": "Music"},
+    {"q": "What was the name of Michael Jackson's pet chimpanzee?", "a": "Bubbles", "category": "Music"},
+    {"q": "What is the title of the first studio album released by The Beatles?", "a": "Please Please Me", "category": "Music"},
 
 ]
 
