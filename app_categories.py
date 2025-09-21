@@ -2,7 +2,39 @@
 
 import random, re, difflib, math
 import streamlit as st
-from question_bank import QUESTIONS, CATEGORIES
+from question_bank import QUESTIONS
+
+# link other categories to pop culture
+CATEGORY_FOLD = {
+    # existing
+    "Celebrities": "Pop Culture",
+    "Fashion and Trends": "Pop Culture",
+    "Tech": "Pop Culture",
+    "Sports and Athletes": "Pop Culture",
+    "Video Games": "Pop Culture",
+    "Literature and Books": "Pop Culture",
+    "Comics and Superheroes": "Pop Culture",
+
+    # new: make all these count as Pop Culture
+    "Movies": "Pop Culture",
+    "Film": "Pop Culture",
+    "Television": "Pop Culture",
+    "TV": "Pop Culture",
+    "TV Shows": "Pop Culture",
+    "Anime": "Pop Culture",
+    "K-Pop and Dramas": "Pop Culture",
+    "K-Pop": "Pop Culture",
+    "Korean Dramas": "Pop Culture",
+    "Social Media": "Pop Culture",
+    "Music": "Pop Culture",
+    "Pop culture trivia questions and answers": "Pop Culture",
+}
+
+# case/whitespace tolerant fold
+_FOLD_NORM = {k.lower(): v for k, v in CATEGORY_FOLD.items()}
+def fold(cat: str) -> str:
+    key = (cat or "").strip()
+    return _FOLD_NORM.get(key.lower(), key)
 
 def _tokenize_options(s: str):
     # split on "and", commas, slashes, semicolons
@@ -12,18 +44,12 @@ def _tokenize_options(s: str):
 def answers_match(user: str, correct: str) -> bool:
     u = user.strip().lower()
     c = correct.strip().lower()
-
-    # exact quick pass
-    if u == c:
+    if u == c:  # exact quick pass
         return True
-
-    # order-insensitive for multi-part answers like "Nepal and China"
     u_parts = _tokenize_options(u)
     c_parts = _tokenize_options(c)
     if len(c_parts) > 1:
         return sorted(u_parts) == sorted(c_parts)
-
-    # fuzzy fallback for minor typos (tune 0.8–0.9)
     return difflib.SequenceMatcher(None, u, c).ratio() >= 0.85
 
 # ---------- Settings ----------
@@ -137,20 +163,83 @@ def alias_equiv(u_norm: str, correct_raw: str) -> bool:
     return alias_match(u_norm, correct_raw)
 
 # ---------- Helpers ----------
+# Number helpers (allow "six" == 6, "twenty one" == 21, etc.)
+_NUM_WORDS = {
+    "zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6,
+    "seven": 7, "eight": 8, "nine": 9, "ten": 10, "eleven": 11, "twelve": 12,
+    "thirteen": 13, "fourteen": 14, "fifteen": 15, "sixteen": 16,
+    "seventeen": 17, "eighteen": 18, "nineteen": 19,
+    "twenty": 20, "thirty": 30, "forty": 40, "fifty": 50,
+    "sixty": 60, "seventy": 70, "eighty": 80, "ninety": 90,
+    "hundred": 100, "thousand": 1000, "million": 1_000_000, "billion": 1_000_000_000,
+}
+_NUM_TOKEN_RE = re.compile(
+    r"\b(?:(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|"
+    r"eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|"
+    r"twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|"
+    r"million|billion)(?:[\s-]+|$))+",
+    flags=re.I
+)
+
+def _words_to_int(phrase: str):
+    words = [w for w in re.split(r"[\s-]+", phrase.strip().lower()) if w]
+    if not words or not all(w in _NUM_WORDS for w in words):
+        return None
+    total, current = 0, 0
+    for w in words:
+        val = _NUM_WORDS[w]
+        if val < 100:
+            current += val
+        elif val == 100:
+            current = (current or 1) * 100
+        else:
+            total += (current or 1) * val
+            current = 0
+    return total + current
+
+def _replace_number_words(text: str) -> str:
+    def _sub(m):
+        n = _words_to_int(m.group(0))
+        return str(n) if n is not None else m.group(0)
+    return _NUM_TOKEN_RE.sub(_sub, text)
+
+def _extract_numbers(s: str):
+    return [int(x) for x in re.findall(r"\d+", s)]
+
 def normalize(s: str) -> str:
-    """Lowercase, trim, unify symbols, drop punctuation, collapse spaces; strip leading 'the'."""
-    s = s.lower().strip()
+    """
+    Lowercase, trim, unify symbols; convert number words to digits; strip leading 'the'.
+    Also normalizes common number formats like '1,250' -> '1250' and '1 250' -> '1250'.
+    """
+    s = (s or "").lower().strip()
     s = s.replace("&", "and").replace("’", "'").replace("´", "'").replace("`", "'")
-    # Optional: mt./st. → mount/saint (good for place names)
+
+    # Remove thousands commas: '1,250' -> '1250'
+    s = re.sub(r'(?<=\d),(?=\d{3}\b)', '', s)
+
+    # mt./st. → mount/saint
     s = re.sub(r"\bmt[\.]?\s+", "mount ", s)
     s = re.sub(r"\bst[\.]?\s+", "saint ", s)
-    # Collapse dotted/spacey 2-letter abbrevs: "u.s."/"n y" -> "us"/"ny"
-    s = re.sub(r"\b([a-z])[\.\s]+([a-z])\b", r"\1\2", s)
 
-    s = re.sub(r"[^\w\s]", " ", s)         # remove punctuation
-    s = re.sub(r"\s+", " ", s).strip()     # collapse spaces
+    # Collapse dotted/spacey abbreviations (u.s. -> us; n y -> ny)
+    s = re.sub(r"\b([a-z])[\.\s]+([a-z])\b", r"\1\2", s)
+    s = re.sub(r"\b([a-z])(?:[\.\s]+([a-z])){2,}\b",
+               lambda m: re.sub(r"[\.\s]+", "", m.group(0)), s)
+
+    # Punctuation to spaces; collapse
+    s = re.sub(r"[^\w\s]", " ", s)
+    s = re.sub(r"\s+", " ", s).strip()
+
+    # Merge spaces between digits: '1 250' -> '1250'
+    s = re.sub(r"(?<=\d)\s+(?=\d)", "", s)
+
+    # Tolerate leading article 'the '
     if s.startswith("the "):
         s = s[4:]
+
+    # Convert number words to digits: 'six' -> '6'; 'twenty one' -> '21'
+    s = _replace_number_words(s)
+
     return s
 
 def alias_match(user_norm: str, correct_raw: str) -> bool:
@@ -166,21 +255,29 @@ def is_correct(user: str, correct: str) -> bool:
     """
     Flexible match:
     - Case/whitespace/punctuation-insensitive
+    - Optional leading 'The' (e.g., 'The Daily Planet' == 'Daily Planet')
+    - Number word ↔ digit equivalence ('six' == '6', 'twenty one' == '21')
     - Accept any among 'or' / comma / slash / semicolon separated answers
-    - Order-insensitive match for multi-part answers (e.g., 'Nepal and China')
+    - Order-insensitive for multi-part answers (e.g., 'Blue and Gold' == 'gold, blue')
     - Alias-aware comparisons (e.g., 'us' ≈ 'united states')
-    - Fuzzy match for mild typos (len-adaptive threshold)
+    - Fuzzy match for mild typos (length-adaptive threshold)
+    - If both sides contain digits, the numeric sequences must match (units/words can differ)
     """
     u = normalize(user or "")
     c = normalize(correct or "")
     if not u:
         return False
 
-    # whole-answer alias (rare but cheap)
-    if alias_equiv(u, correct):
+    # Exact or alias quick pass
+    if u == c or alias_equiv(u, correct):
         return True
 
-    # --- order-insensitive multi-part check ---
+    # If both contain digits, compare just the numbers (ignore units/extra words)
+    if re.search(r"\d", u) and re.search(r"\d", c):
+        if _extract_numbers(u) == _extract_numbers(c):
+            return True
+
+    # Order-insensitive multi-part check (split on and/commas/slashes/semicolons)
     u_parts = _tokenize_options(u)
     c_parts = _tokenize_options(c)
     if len(c_parts) > 1:
@@ -198,18 +295,15 @@ def is_correct(user: str, correct: str) -> bool:
                         matched = True
                         break
                 if not matched:
-                    break
-            else:
-                # loop didn’t break -> every token matched something
-                return True
-        # if counts differ, fall through to single-option logic
+                    return False
+            return True  # all tokens matched in some order
 
-    # --- single-part / “any of these options” logic ---
+    # Single-part / “any of these options” logic
     parts = re.split(r"\bor\b|,|/|;", c)
     parts = [p.strip() for p in parts if p.strip()] or [c]
 
     for p in parts:
-        if u == p or alias_equiv(u, p):  # <-- alias check added here
+        if u == p or alias_equiv(u, p):
             return True
         if len(p) <= 3:  # very short answers require exact match
             continue
@@ -221,15 +315,15 @@ def is_correct(user: str, correct: str) -> bool:
     return False
 
 def pool_for_category(category: str):
-    if category == MIX_LABEL:
+    cat = fold(category)
+    if cat == MIX_LABEL:
         return QUESTIONS
-    return [q for q in QUESTIONS if q["category"] == category]
+    return [q for q in QUESTIONS if fold(q["category"]) == cat]
 
 # ---------- UI ----------
 st.set_page_config(page_title="Trivia (Categories)", page_icon="🧠", layout="centered")
 st.title("🧠 Trivia — Categories")
 st.caption("Build: 2025-09-20")
-
 
 # Session state
 ss = st.session_state
@@ -241,16 +335,16 @@ if "category" not in ss: ss.category = MIX_LABEL
 
 # Start screen
 if not ss.started:
-    cats = [MIX_LABEL] + sorted(CATEGORIES)
+    cats = [MIX_LABEL] + sorted({fold(q["category"]) for q in QUESTIONS})
     ss.category = st.selectbox("Choose a category", cats, index=0)
     pool = pool_for_category(ss.category)
-
-    # ✅ Show how many questions are available in the chosen category
-    st.caption(f"{len(pool)} question(s) available in **{ss.category}**.")
 
     if not pool:
         st.warning("No questions in this category yet.")
         st.stop()
+
+    # ✅ Show how many questions are available in the chosen category
+    st.caption(f"{len(pool)} question(s) available in **{ss.category}**.")
 
     # ✅ Let users allow repeats; this also changes the slider’s max
     allow_repeats = st.checkbox("Allow repeats (sample with replacement)", value=False)
@@ -266,23 +360,20 @@ if not ss.started:
     with st.expander("📋 Rules & Tips", expanded=True):
         st.markdown(
             "- Answers are **case-insensitive**; basic typos are tolerated.\n"
-            "- Numeric answers must be digits (e.g., `1985`).\n"
+            "- Numbers can be **words or digits** (e.g., `six` or `6`).\n"
             "- If a correct answer lists options (e.g., `Green or red`), **any one** is accepted.\n"
             "- Click **Quit** anytime and start over.\n"
         )
 
     if st.button("Start"):
-        # ✅ Use repeats or not based on the checkbox
         ss.order = (
-            random.choices(pool, k=num_q)  # can exceed unique pool size
-            if allow_repeats
-            else random.sample(pool, k=num_q)  # unique questions only
+            random.choices(pool, k=num_q) if allow_repeats
+            else random.sample(pool, k=num_q)
         )
         ss.history = []
         ss.idx = 0
         ss.started = True
         st.rerun()
-
 
 # Game flow
 else:
