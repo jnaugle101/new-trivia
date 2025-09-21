@@ -4,7 +4,7 @@ import random, re, difflib, math
 import streamlit as st
 from question_bank import QUESTIONS
 
-# link other categories to pop culture
+# ---------------- Category folding (treat these as Pop Culture) ----------------
 CATEGORY_FOLD = {
     # existing
     "Celebrities": "Pop Culture",
@@ -14,8 +14,7 @@ CATEGORY_FOLD = {
     "Video Games": "Pop Culture",
     "Literature and Books": "Pop Culture",
     "Comics and Superheroes": "Pop Culture",
-
-    # new: make all these count as Pop Culture
+    # new → Pop Culture
     "Movies": "Pop Culture",
     "Film": "Pop Culture",
     "Television": "Pop Culture",
@@ -29,9 +28,8 @@ CATEGORY_FOLD = {
     "Music": "Pop Culture",
     "Pop culture trivia questions and answers": "Pop Culture",
 }
-
-# case/whitespace tolerant fold
 _FOLD_NORM = {k.lower(): v for k, v in CATEGORY_FOLD.items()}
+
 def fold(cat: str) -> str:
     key = (cat or "").strip()
     return _FOLD_NORM.get(key.lower(), key)
@@ -41,24 +39,12 @@ def _tokenize_options(s: str):
     parts = re.split(r"\s*(?:\band\b|,|/|;)\s*", s.strip(), flags=re.I)
     return [p for p in parts if p]
 
-def answers_match(user: str, correct: str) -> bool:
-    u = user.strip().lower()
-    c = correct.strip().lower()
-    if u == c:  # exact quick pass
-        return True
-    u_parts = _tokenize_options(u)
-    c_parts = _tokenize_options(c)
-    if len(c_parts) > 1:
-        return sorted(u_parts) == sorted(c_parts)
-    return difflib.SequenceMatcher(None, u, c).ratio() >= 0.85
-
-# ---------- Settings ----------
+# ---------------- Settings ----------------
 PASS_THRESHOLD = 0.70  # 70%
 MIX_LABEL = "All Categories (Mix)"
 
-# Optional: paste your big ALIASES dict here if you want (can be empty)
+# ---------------- Aliases ----------------
 ALIASES = {
-    # example aliases – expand as you like
     "uk": {"united kingdom", "great britain", "britain"},
     "netherlands": {"holland", "the netherlands"},
     "robert downey jr": {"rdj", "robert downey junior"},
@@ -68,58 +54,25 @@ ALIASES = {
     "new york city": {"nyc", "new york", "ny"},
     "007": {"james bond", "bond"},
     "bible": {"the bible", "holy bible"},
-    "Alabama": {"AL"},
-    "Alaska": {"AK"},
-    "Arizona": {"AZ"},
-    "Arkansas": {"AR"},
-    "California": {"CA"},
-    "Colorado": {"CO"},
-    "Connecticut": {"CT"},
-    "Delaware": {"DE"},
-    "Florida": {"FL"},
-    "Georgia": {"GA"},
-    "Hawaii": {"HI"},
-    "Idaho": {"ID"},
-    "Illinois": {"IL"},
-    "Indiana": {"IN"},
-    "Iowa": {"IA"},
-    "Kansas": {"KS"},
-    "Kentucky": {"KY"},
-    "Louisiana": {"LA"},
-    "Maine": {"ME"},
-    "Maryland": {"MD"},
-    "Massachusetts": {"MA"},
-    "Michigan": {"MI"},
-    "Minnesota": {"MN"},
-    "Mississippi": {"MS"},
-    "Missouri": {"MO"},
-    "Montana": {"MT"},
-    "Nebraska": {"NE"},
-    "Nevada": {"NV"},
-    "New Hampshire": {"NH"},
-    "New Jersey": {"NJ"},
-    "New Mexico": {"NM"},
-    "New York": {"NY"},
-    "North Carolina": {"NC"},
-    "North Dakota": {"ND"},
-    "Ohio": {"OH"},
-    "Oklahoma": {"OK"},
-    "Oregon": {"OR"},
-    "Pennsylvania": {"PA"},
-    "Rhode Island": {"RI"},
-    "South Carolina": {"SC"},
-    "South Dakota": {"SD"},
-    "Tennessee": {"TN"},
-    "Texas": {"TX"},
-    "Utah": {"UT"},
-    "Vermont": {"VT"},
-    "Virginia": {"VA"},
-    "Washington": {"WA"},
-    "West Virginia": {"WV"},
-    "Wisconsin": {"WI"},
-    "Wyoming": {"WY"},
-    # DC (normalize() strips punctuation)
+
+    # States (two-letter)
+    "Alabama": {"AL"}, "Alaska": {"AK"}, "Arizona": {"AZ"}, "Arkansas": {"AR"},
+    "California": {"CA"}, "Colorado": {"CO"}, "Connecticut": {"CT"}, "Delaware": {"DE"},
+    "Florida": {"FL"}, "Georgia": {"GA"}, "Hawaii": {"HI"}, "Idaho": {"ID"},
+    "Illinois": {"IL"}, "Indiana": {"IN"}, "Iowa": {"IA"}, "Kansas": {"KS"},
+    "Kentucky": {"KY"}, "Louisiana": {"LA"}, "Maine": {"ME"}, "Maryland": {"MD"},
+    "Massachusetts": {"MA"}, "Michigan": {"MI"}, "Minnesota": {"MN"}, "Mississippi": {"MS"},
+    "Missouri": {"MO"}, "Montana": {"MT"}, "Nebraska": {"NE"}, "Nevada": {"NV"},
+    "New Hampshire": {"NH"}, "New Jersey": {"NJ"}, "New Mexico": {"NM"}, "New York": {"NY"},
+    "North Carolina": {"NC"}, "North Dakota": {"ND"}, "Ohio": {"OH"}, "Oklahoma": {"OK"},
+    "Oregon": {"OR"}, "Pennsylvania": {"PA"}, "Rhode Island": {"RI"}, "South Carolina": {"SC"},
+    "South Dakota": {"SD"}, "Tennessee": {"TN"}, "Texas": {"TX"}, "Utah": {"UT"},
+    "Vermont": {"VT"}, "Virginia": {"VA"}, "Washington": {"WA"}, "West Virginia": {"WV"},
+    "Wisconsin": {"WI"}, "Wyoming": {"WY"},
+
+    # DC (normalize strips punctuation)
     "Washington, DC": {"DC", "Washington DC", "District of Columbia"},
+
     # Countries / blocs
     "United Kingdom": {"UK", "U.K.", "Great Britain", "Britain"},
     "United Arab Emirates": {"UAE"},
@@ -136,34 +89,26 @@ ALIASES = {
     "South Korea": {"ROK", "Republic of Korea"},
     "North Korea": {"DPRK", "Democratic People's Republic of Korea"},
 
-    # Major cities (common nicknames/abbr.)
+    # Major cities (nicknames)
     "Los Angeles": {"LA", "L.A."},
     "San Francisco": {"SF", "S.F.", "San Fran"},
-    "Philadelphia": {"Philly"},
-    "Las Vegas": {"Vegas"},
-    "New Orleans": {"NOLA"},
-    "Atlanta": {"ATL"},
-    "Saint Louis": {"St Louis", "St. Louis"},
+    "Philadelphia": {"Philly"}, "Las Vegas": {"Vegas"}, "New Orleans": {"NOLA"},
+    "Atlanta": {"ATL"}, "Saint Louis": {"St Louis", "St. Louis"},
     "Saint Petersburg": {"St Petersburg", "St. Petersburg"},
 
     # People / initials
-    "John F. Kennedy": {"JFK"},
-    "Franklin D. Roosevelt": {"FDR"},
+    "John F. Kennedy": {"JFK"}, "Franklin D. Roosevelt": {"FDR"},
     "Martin Luther King Jr.": {"MLK", "Dr Martin Luther King Jr", "Dr. Martin Luther King Jr"},
 
     # Entertainment shorthands
-    "Lord of the Rings": {"LOTR"},
-    "Game of Thrones": {"GOT"},
-    "Harry Potter": {"HP"},
-    "Back to the Future": {"BTTF"},
-    "AC/DC": {"ACDC"},
+    "Lord of the Rings": {"LOTR"}, "Game of Thrones": {"GOT"}, "Harry Potter": {"HP"},
+    "Back to the Future": {"BTTF"}, "AC/DC": {"ACDC"},
 }
 
 def alias_equiv(u_norm: str, correct_raw: str) -> bool:
     return alias_match(u_norm, correct_raw)
 
-# ---------- Helpers ----------
-# Number helpers (allow "six" == 6, "twenty one" == 21, etc.)
+# ---------------- Number helpers (e.g., "six" == 6) ----------------
 _NUM_WORDS = {
     "zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6,
     "seven": 7, "eight": 8, "nine": 9, "ten": 10, "eleven": 11, "twelve": 12,
@@ -192,7 +137,7 @@ def _words_to_int(phrase: str):
             current += val
         elif val == 100:
             current = (current or 1) * 100
-        else:
+        else:  # thousand/million/...
             total += (current or 1) * val
             current = 0
     return total + current
@@ -206,6 +151,7 @@ def _replace_number_words(text: str) -> str:
 def _extract_numbers(s: str):
     return [int(x) for x in re.findall(r"\d+", s)]
 
+# ---------------- Matching helpers ----------------
 def normalize(s: str) -> str:
     """
     Lowercase, trim, unify symbols; convert number words to digits; strip leading 'the'.
@@ -277,25 +223,25 @@ def is_correct(user: str, correct: str) -> bool:
         if _extract_numbers(u) == _extract_numbers(c):
             return True
 
-    # Order-insensitive multi-part check (split on and/commas/slashes/semicolons)
+    # Order-insensitive multi-part check
     u_parts = _tokenize_options(u)
     c_parts = _tokenize_options(c)
-    if len(c_parts) > 1:
-        if len(u_parts) == len(c_parts):
-            def close(a, b):
-                return difflib.SequenceMatcher(None, a, b).ratio() >= 0.88
-            used = [False] * len(c_parts)
-            for a in u_parts:
-                matched = False
-                for j, b in enumerate(c_parts):
-                    if used[j]:
-                        continue
-                    if a == b or alias_equiv(a, b) or close(a, b):
-                        used[j] = True
-                        matched = True
-                        break
-                if not matched:
-                    return False
+    if len(c_parts) > 1 and len(u_parts) == len(c_parts):
+        def close(a, b):
+            return difflib.SequenceMatcher(None, a, b).ratio() >= 0.88
+        used = [False] * len(c_parts)
+        for a in u_parts:
+            matched = False
+            for j, b in enumerate(c_parts):
+                if used[j]:
+                    continue
+                if a == b or alias_equiv(a, b) or close(a, b):
+                    used[j] = True
+                    matched = True
+                    break
+            if not matched:
+                break
+        else:
             return True  # all tokens matched in some order
 
     # Single-part / “any of these options” logic
@@ -320,7 +266,7 @@ def pool_for_category(category: str):
         return QUESTIONS
     return [q for q in QUESTIONS if fold(q["category"]) == cat]
 
-# ---------- UI ----------
+# ---------------- UI ----------------
 st.set_page_config(page_title="Trivia (Categories)", page_icon="🧠", layout="centered")
 st.title("🧠 Trivia — Categories")
 st.caption("Build: 2025-09-20")
@@ -329,9 +275,10 @@ st.caption("Build: 2025-09-20")
 ss = st.session_state
 if "started" not in ss: ss.started = False
 if "idx" not in ss: ss.idx = 0
-if "order" not in ss: ss.order = []         # list of question dicts in play order
-if "history" not in ss: ss.history = []     # dicts: {q, user, correct, is_correct}
+if "order" not in ss: ss.order = []
+if "history" not in ss: ss.history = []
 if "category" not in ss: ss.category = MIX_LABEL
+if "skipped_once" not in ss: ss.skipped_once = set()
 
 # Start screen
 if not ss.started:
@@ -343,36 +290,36 @@ if not ss.started:
         st.warning("No questions in this category yet.")
         st.stop()
 
-    # ✅ Show how many questions are available in the chosen category
     st.caption(f"{len(pool)} question(s) available in **{ss.category}**.")
 
-    # ✅ Let users allow repeats; this also changes the slider’s max
     allow_repeats = st.checkbox("Allow repeats (sample with replacement)", value=False)
 
     MAX_BASE = 50
     max_q = MAX_BASE if allow_repeats else min(MAX_BASE, len(pool))
     num_default = min(10, max_q)
-    num_q = st.slider(
-        "How many questions?",
-        min_value=5, max_value=max_q, value=num_default, step=1
-    )
+    num_q = st.slider("How many questions?", min_value=5, max_value=max_q, value=num_default, step=1)
 
     with st.expander("📋 Rules & Tips", expanded=True):
         st.markdown(
             "- Answers are **case-insensitive**; basic typos are tolerated.\n"
             "- Numbers can be **words or digits** (e.g., `six` or `6`).\n"
             "- If a correct answer lists options (e.g., `Green or red`), **any one** is accepted.\n"
+            "- Click **Skip** to revisit a question at the end (once per question).\n"
             "- Click **Quit** anytime and start over.\n"
         )
 
     if st.button("Start"):
-        ss.order = (
-            random.choices(pool, k=num_q) if allow_repeats
-            else random.sample(pool, k=num_q)
+        base_order = (
+            random.choices(pool, k=num_q)  # can exceed unique pool size
+            if allow_repeats
+            else random.sample(pool, k=num_q)  # unique questions only
         )
+        # Give each question a stable unique id for this run
+        ss.order = [{"uid": f"q{i}", **q} for i, q in enumerate(base_order)]
         ss.history = []
         ss.idx = 0
         ss.started = True
+        ss.skipped_once = set()   # reset skip markers each game
         st.rerun()
 
 # Game flow
@@ -387,13 +334,13 @@ else:
         st.subheader(f"Question {i + 1} of {total} — {ss.category}")
         st.write(qtext)
 
-        # ✅ Image display goes HERE (optional per-question)
+        # Optional image per question
         if qobj.get("image"):
             st.image(qobj["image"], use_column_width=True)
 
         user_ans = st.text_input("Your answer:", key=f"ans_{i}")
 
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
         with col1:
             if st.button("Submit", key=f"submit_{i}"):
                 if not user_ans.strip():
@@ -408,15 +355,31 @@ else:
                     })
                     ss.idx += 1
                     st.rerun()
+
         with col2:
             if st.button("Quit"):
                 ss.started = False
                 ss.idx = 0
                 ss.order = []
                 ss.history = []
+                ss.skipped_once = set()
                 st.rerun()
 
+        with col3:
+            already_skipped = qobj.get("uid") in ss.skipped_once
+            if st.button("Skip", key=f"skip_{i}", disabled=already_skipped):
+                # Move current question to the END of the list (once per question)
+                moved = ss.order.pop(i)
+                ss.order.append(moved)
+                ss.skipped_once.add(moved["uid"])
+                # Keep ss.idx the same so the next question slides into position i
+                st.rerun()
+
+        # Progress + optional skipped count (THIS is the optional snippet)
         st.progress(i / total if total else 0.0)
+        pending_skips = sum(1 for q in ss.order[i:] if q.get("uid") in ss.skipped_once)
+        if pending_skips:
+            st.caption(f"⏭️ Skipped to revisit: {pending_skips}")
 
     else:
         # End screen
@@ -448,4 +411,5 @@ else:
             ss.idx = 0
             ss.order = []
             ss.history = []
+            ss.skipped_once = set()
             st.rerun()
